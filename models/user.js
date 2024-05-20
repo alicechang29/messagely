@@ -38,9 +38,7 @@ class User {
     );
     const user = result.rows[0];
 
-    return (user && (await bcrypt.compare(
-      password, user.password
-    ) === true));
+    return (user && (await bcrypt.compare(password, user.password) === true));
   }
 
   /** Update last_login_at for user */
@@ -48,10 +46,11 @@ class User {
   static async updateLoginTimestamp(username) {
     await db.query(
       `UPDATE users
-      SET last_login_at=$1
-      WHERE username=$2`,
-      [new Date(), username]
+      SET last_login_at=CURRENT_TIMESTAMP
+      WHERE username=$1`,
+      [username]
     );
+    //FIXME: return username bc if the user doesn't exist, return an error
 
   }
 
@@ -94,7 +93,7 @@ class User {
       [username]
     );
     if (user.rows.length === 0) {
-      throw new NotFoundError();
+      throw new NotFoundError(); //FIXME: insert a message here
     }
 
     return user.rows[0];
@@ -123,7 +122,7 @@ class User {
       JOIN users as u ON m.to_username = u.username
       WHERE m.from_username = $1`,
       [username]
-    );
+    ); //FIXME: add an order by sent_at
 
     return results.rows.map(msg => ({
       id: msg.id,
@@ -162,7 +161,7 @@ class User {
       JOIN users as u ON m.from_username = u.username
       WHERE m.to_username = $1`,
       [username]
-    );
+    ); //FIXME: add order by
 
     return results.rows.map(msg => ({
       id: msg.id,
