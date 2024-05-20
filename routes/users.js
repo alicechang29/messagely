@@ -10,7 +10,9 @@ const router = new Router();
  * => {users: [{username, first_name, last_name}, ...]}
  *
  **/
-
+router.get("/", ensureLoggedIn, async function (req, res) {
+    return await res.json({ users: User.all() });
+});
 
 /** GET /:username - get detail of users.
  *

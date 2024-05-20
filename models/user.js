@@ -44,13 +44,17 @@ class User {
   /** Update last_login_at for user */
 
   static async updateLoginTimestamp(username) {
-    await db.query(
+    const user = await db.query(
       `UPDATE users
       SET last_login_at=CURRENT_TIMESTAMP
-      WHERE username=$1`,
+      WHERE username=$1
+      RETURNING username`,
       [username]
     );
-    //FIXME: return username bc if the user doesn't exist, return an error
+
+    if (user.rows.length === 0) {
+      throw new NotFoundError("No user found");
+    }
 
   }
 
@@ -93,7 +97,7 @@ class User {
       [username]
     );
     if (user.rows.length === 0) {
-      throw new NotFoundError(); //FIXME: insert a message here
+      throw new NotFoundError("No user found");
     }
 
     return user.rows[0];
@@ -120,9 +124,10 @@ class User {
           u.phone
       FROM messages as m
       JOIN users as u ON m.to_username = u.username
-      WHERE m.from_username = $1`,
+      WHERE m.from_username = $1
+      ORDER BY m.sent_at`,
       [username]
-    ); //FIXME: add an order by sent_at
+    );
 
     return results.rows.map(msg => ({
       id: msg.id,
@@ -159,9 +164,10 @@ class User {
           u.phone
       FROM messages as m
       JOIN users as u ON m.from_username = u.username
-      WHERE m.to_username = $1`,
+      WHERE m.to_username = $1
+      ORDER BY m.sent_at`,
       [username]
-    ); //FIXME: add order by
+    );
 
     return results.rows.map(msg => ({
       id: msg.id,
