@@ -1,3 +1,7 @@
+import bcrypt from "bcrypt";
+import { BCRYPT_WORK_FACTOR } from "../config.js";
+import db from "../db.js";
+
 /** User of the site. */
 
 class User {
@@ -7,6 +11,19 @@ class User {
    */
 
   static async register({ username, password, first_name, last_name, phone }) {
+    const hpwd = await bcrypt.hash(
+      password, BCRYPT_WORK_FACTOR
+    );
+
+    const result = await db.query(
+      `INSERT INTO users
+          (username, password, first_name, last_name, phone)
+          VALUES ($1, $2, $3, $4, $5)
+          RETURNING username, password, first_name, last_name, phone`,
+      [username, hpwd, first_name, last_name, phone]
+    );
+
+    return result.rows[0];
   }
 
   /** Authenticate: is username/password valid? Returns boolean. */
