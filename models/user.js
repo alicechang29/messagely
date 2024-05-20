@@ -58,6 +58,16 @@ class User {
    * [{username, first_name, last_name}, ...] */
 
   static async all() {
+    const users = await db.query(
+      `SELECT
+          username,
+          first_name,
+          last_name
+      FROM users
+      ORDER BY username`
+    );
+
+    return users.rows;
   }
 
   /** Get: get user by username
@@ -82,6 +92,7 @@ class User {
       WHERE username = $1`,
       [username]
     );
+    // TODO: throw an error if no user
     return user.rows[0];
   }
 
@@ -94,6 +105,43 @@ class User {
    */
 
   static async messagesFrom(username) {
+    const results = await db.query(
+      `SELECT
+          m.id as id,
+          m.body as body,
+          m.sent_at as sent_at,
+          m.read_at as read_at,
+          u.username as username,
+          u.first_name as first_name,
+          u.last_name as last_name,
+          u.phone as phone
+      FROM messages as m
+      JOIN users as u ON m.to_username = u.username
+      WHERE m.from_username = $1`,
+      [username]
+    );
+
+    console.log("THE RESULTS ARE HERE --------->", results.rows);
+
+    return results.rows
+      .map(({
+        id,
+        body,
+        sent_at,
+        read_at,
+        username,
+        first_name,
+        last_name,
+        phone
+      }) => {
+        return {
+          id,
+          "to_user": { username, first_name, last_name, phone },
+          body,
+          sent_at,
+          read_at
+        }
+      });
   }
 
   /** Return messages to this user.
