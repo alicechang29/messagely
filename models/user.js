@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import { BCRYPT_WORK_FACTOR } from "../config.js";
 import db from "../db.js";
+import { NotFoundError } from "../expressError.js";
 
 /** User of the site. */
 
@@ -92,7 +93,10 @@ class User {
       WHERE username = $1`,
       [username]
     );
-    // TODO: throw an error if no user
+    if (user.rows.length === 0) {
+      throw new NotFoundError();
+    }
+
     return user.rows[0];
   }
 
@@ -144,6 +148,34 @@ class User {
    */
 
   static async messagesTo(username) {
+    const results = await db.query(
+      `SELECT
+          m.id,
+          m.body,
+          m.sent_at,
+          m.read_at,
+          u.username,
+          u.first_name,
+          u.last_name,
+          u.phone
+      FROM messages as m
+      JOIN users as u ON m.from_username = u.username
+      WHERE m.to_username = $1`,
+      [username]
+    );
+
+    return results.rows.map(msg => ({
+      id: msg.id,
+      from_user: {
+        username: msg.username,
+        first_name: msg.first_name,
+        last_name: msg.last_name,
+        phone: msg.phone
+      },
+      body: msg.body,
+      sent_at: msg.sent_at,
+      read_at: msg.read_at
+    }));
   }
 }
 
