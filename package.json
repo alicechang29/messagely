@@ -1,0 +1,26 @@
+{
+  "name": "messagely",
+  "version": "1.1.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "test": "vitest --no-file-parallelism",
+    "test:cov": "vitest --coverage --no-file-parallelism"
+  },
+  "devDependencies": {
+    "supertest": "*",
+    "vitest": "^1.6.0",
+    "@vitest/coverage-v8": "^1.6.0"
+  },
+  "dependencies": {
+    "bcrypt": "*",
+    "cors": "*",
+    "dotenv": "*",
+    "express": "^5.0.0-beta.3",
+    "express-cors": "*",
+    "jsonwebtoken": "*",
+    "pg": "*"
+  }
+}
