@@ -12,88 +12,67 @@ import jwt from "jsonwebtoken";
 import app from "../app.js";
 import db from "../db.js";
 import User from "../models/user.js";
-import Messages from "../models/message.js";
+import Message from "../models/message.js";
+
+let u1, u2, m1, m2;
+
 
 describe("Auth Routes Test", function () {
+
   beforeEach(async function () {
     await db.query("DELETE FROM messages");
     await db.query("DELETE FROM users");
+    await db.query("ALTER TABLE messages ALTER COLUMN id RESTART WITH 1");
 
-    let u1 = await User.register({
+    u1 = await User.register({
       username: "test1",
       password: "password",
       first_name: "Test1",
       last_name: "Testy1",
       phone: "+14155550000",
     });
+    u2 = await User.register({
+      username: "test2",
+      password: "password",
+      first_name: "Test2",
+      last_name: "Testy2",
+      phone: "+14155552222",
+    });
+    m1 = await Message.create({
+      from_username: "test1",
+      to_username: "test2",
+      body: "u1-to-u2",
+    });
+    m2 = await Message.create({
+      from_username: "test2",
+      to_username: "test1",
+      body: "u2-to-u1",
+    });
   });
+
 
   /** POST /auth/register => token  */
 
-  describe("POST /auth/register", function () {
-    test("can register", async function () {
-      let response = await request(app)
-        .post("/auth/register")
-        .send({
-          username: "bob",
-          password: "secret",
-          first_name: "Bob",
-          last_name: "Smith",
-          phone: "+14150000000",
-        });
+  describe("GET /:id", async function () {
+    test("get a message by id", async function () {
 
-      let token = response.body.token;
-      expect(jwt.decode(token)).toEqual({
-        username: "bob",
-        iat: expect.any(Number),
-      });
-    });
-
-    test("throws 400 bad request error if no body", async function () {
-      let response = await request(app)
-        .post("/auth/register")
-        .send();
-      expect(response.statusCode).toEqual(400);
-    });
-  });
-
-  /** POST /auth/login => token  */
-
-  describe("POST /auth/login", function () {
-    test("can login", async function () {
       let response = await request(app)
         .post("/auth/login")
         .send({ username: "test1", password: "password" });
 
-      let token = response.body.token;
-      expect(jwt.decode(token)).toEqual({
-        username: "test1",
-        iat: expect.any(Number),
-      });
-    });
+      let token = await response.body.token;
 
-    test("won't login w/wrong password", async function () {
-      let response = await request(app)
-        .post("/auth/login")
-        .send({ username: "test1", password: "WRONG" });
-      expect(response.statusCode).toEqual(401);
-    });
+      const result = await db.query(
+        `
+        SELECT body
+        FROM messages
+        WHERE id=${m1.id}
+        `
+      );
 
-    test("won't login w/wrong username", async function () {
-      let response = await request(app)
-        .post("/auth/login")
-        .send({ username: "not-user", password: "password" });
-      expect(response.statusCode).toEqual(401);
-    });
-
-    test("throws 400 bad request error if no body", async function () {
-      let response = await request(app)
-        .post("/auth/login")
-        .send();
-
-      console.log("!!! responsebody", response.body);
-
-      expect(response.statusCode).toEqual(400);
+      response = await request(app).get(`/messages/${m1.id}`).query({ _token: token });
+      // FIXME: use expect
+      console.log(response.body);
     });
   });
 });

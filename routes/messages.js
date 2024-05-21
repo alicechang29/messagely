@@ -20,20 +20,23 @@ const router = new express.Router();
  **/
 router.get("/:id",
   ensureLoggedIn,
-  async function () {
+  async function (req, res) {
     const msgId = req.params.id;
     const message = await Message.get(msgId);
-    const user = res.locals.user;
+    const user = res.locals.user.username;
 
-    if (user === message.from_user || user === message.to_user) {
-      return { message };
+    if (
+      user === message.from_user.username ||
+      user === message.to_user.username
+    ) {
+      return res.json({ message });
     }
 
     throw new UnauthorizedError();
 
   });
 
-
+// FIXME: return json and res.locals.user.username
 /** POST / - post message.
  *
  * {to_username, body} =>
@@ -63,7 +66,7 @@ router.post("/",
 
   });
 
-
+// FIXME: return json and res.locals.user.username
 /** POST/:id/read - mark message as read:
  *
  *  => {message: {id, read_at}}
