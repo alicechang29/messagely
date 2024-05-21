@@ -48,11 +48,12 @@ router.post("/register",
             throw new BadRequestError();
         }
 
-        const user = await User.register(req.body);
+        const { username } = await User.register(req.body); // destructure username bc this is returning user object with a key of username
 
-        const username = user.username;
+        // const username = user.username; //{user}
 
         const token = jwt.sign({ username }, SECRET_KEY);
+        User.updateLoginTimestamp(username);
         return res.json({ token });
     });
 

@@ -23,11 +23,11 @@ router.get("/:id",
   async function (req, res) {
     const id = req.params.id;
     const message = await Message.get(id);
-    const user = res.locals.user.username;
+    const username = res.locals.user.username;
 
     if (
-      user === message.from_user.username ||
-      user === message.to_user.username
+      username === message.from_user.username ||
+      username === message.to_user.username
     ) {
       return res.json({ message });
     }
@@ -81,11 +81,11 @@ router.post("/:id/read",
 
     const id = req.params.id;
 
-    const user = res.locals.user.username;
+    const username = res.locals.user.username;
 
     let message = await Message.get(id);
 
-    if (message.to_user.username === user) {
+    if (message.to_user.username === username) {
       message = await Message.markRead(id);
       return res.json({ message });
     }

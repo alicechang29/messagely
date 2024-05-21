@@ -4,8 +4,6 @@ import { ensureLoggedIn, ensureCorrectUser } from "../middleware/auth.js";
 
 const router = new Router();
 
-// TODO: validation checks everywhere
-
 /** GET / - get list of users.
  *
  * => {users: [{username, first_name, last_name}, ...]}
