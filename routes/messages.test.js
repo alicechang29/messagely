@@ -17,7 +17,7 @@ import Message from "../models/message.js";
 let u1, u2, m1, m2;
 
 
-describe("Auth Routes Test", function () {
+describe("Messages routes test", function () {
 
   beforeEach(async function () {
     await db.query("DELETE FROM messages");
@@ -53,7 +53,7 @@ describe("Auth Routes Test", function () {
 
   /** POST /auth/register => token  */
 
-  describe("GET /:id", async function () {
+  describe("GET /messages/:id", async function () {
     test("get a message by id", async function () {
 
       let response = await request(app)
@@ -71,7 +71,6 @@ describe("Auth Routes Test", function () {
       );
 
       response = await request(app).get(`/messages/${m1.id}`).query({ _token: token });
-      // FIXME: use expect
       expect(response.body).toEqual({
         message: {
           id: 1,

@@ -53,12 +53,13 @@ router.post("/",
       throw new BadRequestError();
     }
 
-    const fromUsername = res.locals.user.username;
-    const toUsername = req.body.to_username;
+    const from_username = res.locals.user.username;
+    const to_username = req.body.to_username;
     const body = req.body.body;
 
-    if (User.get(toUsername)) {
-      const message = await Message.create({ fromUsername, toUsername, body });
+    if (User.get(to_username)) {
+      const message = await Message
+      .create({ from_username, to_username, body });
 
       return res.json({ message });
     }

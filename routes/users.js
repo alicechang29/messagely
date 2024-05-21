@@ -4,6 +4,7 @@ import { ensureLoggedIn, ensureCorrectUser } from "../middleware/auth.js";
 
 const router = new Router();
 
+// TODO: validation checks everywhere
 
 /** GET / - get list of users.
  *
@@ -20,7 +21,10 @@ router.get("/", ensureLoggedIn, async function (req, res) {
  * => {user: {username, first_name, last_name, phone, join_at, last_login_at}}
  *
  **/
-
+router.get("/:username", ensureCorrectUser, async function (req, res) {
+    const user = await User.get(req.params.username);
+    return await res.json({ user });
+});
 
 /** GET /:username/to - get messages to user
  *
@@ -31,7 +35,10 @@ router.get("/", ensureLoggedIn, async function (req, res) {
  *                 from_user: {username, first_name, last_name, phone}}, ...]}
  *
  **/
-
+router.get("/:username/to", ensureCorrectUser, async function (req, res) {
+    const messages = await User.messagesTo(req.params.username);
+    return await res.json({ messages });
+});
 
 /** GET /:username/from - get messages from user
  *
@@ -42,5 +49,9 @@ router.get("/", ensureLoggedIn, async function (req, res) {
  *                 to_user: {username, first_name, last_name, phone}}, ...]}
  *
  **/
+router.get("/:username", ensureCorrectUser, async function (req, res) {
+    const messages = await User.messagesFrom(req.params.username);
+    return await res.json({ messages });
+});
 
 export default router;
