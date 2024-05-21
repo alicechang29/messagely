@@ -72,7 +72,27 @@ describe("Auth Routes Test", function () {
 
       response = await request(app).get(`/messages/${m1.id}`).query({ _token: token });
       // FIXME: use expect
-      console.log(response.body);
+      expect(response.body).toEqual({
+        message: {
+          id: 1,
+          from_user: {
+            username: 'test1',
+            first_name: 'Test1',
+            last_name: 'Testy1',
+            phone: '+14155550000'
+          },
+          to_user: {
+            username: 'test2',
+            first_name: 'Test2',
+            last_name: 'Testy2',
+            phone: '+14155552222'
+          },
+          body: 'u1-to-u2',
+          sent_at: expect.any(String),
+          read_at: null
+        }
+      });
+      //TODO: add a fail case and status codes
     });
   });
 });
