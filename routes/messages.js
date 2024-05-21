@@ -1,6 +1,8 @@
 import express from "express";
+import { ensureLoggedIn, ensureCorrectUser } from "../middleware/auth.js";
 import Message from "../models/message.js";
-import User from "..models/user.js";
+import { UnauthorizedError } from "../expressError.js";
+import User from "../models/user.js";
 
 const router = new express.Router();
 
@@ -16,13 +18,20 @@ const router = new express.Router();
  * Makes sure that the currently-logged-in users is either the to or from user.
  *
  **/
-router.get("/:id", async function () {
-  const msgId = req.params.id;
+router.get("/:id",
+  ensureLoggedIn,
+  async function () {
+    const msgId = req.params.id;
+    const message = await Message.get(msgId);
+    const user = res.locals.user;
 
-  const message = await Message.get(msgId);
+    if (user === message.from_user || user === message.to_user) {
+      return { message };
+    }
 
-  return { message };
-});
+    throw new UnauthorizedError();
+
+  });
 
 
 /** POST / - post message.
@@ -32,15 +41,27 @@ router.get("/:id", async function () {
  *
  **/
 
-router.post("/", async function () {
-  const fromUsername = res.locals.user;
-  const toUsername = req.body.to_username;
-  const body = req.body.body;
+router.post("/",
+  ensureLoggedIn,
+  async function () {
+    if (
+      req.body.to_username === undefined ||
+      req.body.body === undefined
+    ) {
+      throw new BadRequestError();
+    }
 
-  const message = await Message.create(fromUsername, toUsername, body);
+    const fromUsername = res.locals.user;
+    const toUsername = req.body.to_username;
+    const body = req.body.body;
 
-  return { message };
-});
+    if (User.get(toUsername)) {
+      const message = await Message.create(fromUsername, toUsername, body);
+
+      return { message };
+    }
+
+  });
 
 
 /** POST/:id/read - mark message as read:
@@ -50,6 +71,24 @@ router.post("/", async function () {
  * Makes sure that the only the intended recipient can mark as read.
  *
  **/
+router.post("/:id/read",
+  ensureCorrectUser,
+  async function () {
+
+    const id = req.query.params;
+
+    const user = res.locals.user;
+
+    let message = await Message.get(id);
+
+    if (message.toUsername === user.username) {
+      message = await Message.markRead(id);
+      return { message };
+    }
+
+    throw new UnauthorizedError();
+  });
+
 
 
 export default router;
