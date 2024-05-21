@@ -10,22 +10,22 @@ const router = new express.Router();
 /** POST /login: {username, password} => {token} */
 
 router.post("/login", async function (req, res, next) {
-  if (
-    req.body === undefined ||
-    req.body.username === undefined ||
-    req.body.password === undefined
-  ) {
-    throw new BadRequestError();
-  }
+    if (
+        req.body === undefined ||
+        req.body.username === undefined ||
+        req.body.password === undefined
+    ) {
+        throw new BadRequestError();
+    }
 
-  const { username, password } = req.body;
+    const { username, password } = req.body;
 
-  if (await User.authenticate(username, password) === true) {
-    const token = jwt.sign({ username }, SECRET_KEY);
-    return res.json({ token });
-  };
+    if (await User.authenticate(username, password) === true) {
+        const token = jwt.sign({ username }, SECRET_KEY);
+        return res.json({ token });
+    }
 
-  throw new UnauthorizedError();
+    throw new UnauthorizedError();
 
 });
 
@@ -33,5 +33,26 @@ router.post("/login", async function (req, res, next) {
  *
  * {username, password, first_name, last_name, phone} => {token}.
  */
+
+router.post("/register",
+    async function (req, res, next) {
+        if (
+            req.body === undefined ||
+            req.body.username === undefined ||
+            req.body.password === undefined ||
+            req.body.first_name === undefined ||
+            req.body.last_name === undefined ||
+            req.body.phone === undefined
+        ) {
+            throw new BadRequestError();
+        }
+
+        const user = await User.register(req.body);
+
+        const username = user.username
+
+        const token = jwt.sign({ username }, SECRET_KEY);
+        return res.json({ token });
+    });
 
 export default router;
