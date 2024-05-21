@@ -60,15 +60,7 @@ describe("Messages routes test", function () {
         .post("/auth/login")
         .send({ username: "test1", password: "password" });
 
-      let token = await response.body.token;
-
-      const result = await db.query(
-        `
-        SELECT body
-        FROM messages
-        WHERE id=${m1.id}
-        `
-      );
+      let token = await response.body.token; //TODO: can abstract into a "beforeAll" setup fn
 
       response = await request(app).get(`/messages/${m1.id}`).query({ _token: token });
       expect(response.body).toEqual({
