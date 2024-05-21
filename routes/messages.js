@@ -57,12 +57,14 @@ router.post("/",
     const to_username = req.body.to_username;
     const body = req.body.body;
 
-    if (User.get(to_username)) {
-      const message = await Message
+    // ensure the to_username is a valid user
+    // TODO: is this the best way to do this? Use a helper function?
+    await User.get(to_username);
+
+    const message = await Message
       .create({ from_username, to_username, body });
 
-      return res.json({ message });
-    }
+    return res.json({ message });
 
   });
 

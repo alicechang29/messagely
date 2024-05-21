@@ -26,6 +26,8 @@ router.get("/:username", ensureCorrectUser, async function (req, res) {
     return await res.json({ user });
 });
 
+// TODO: what happens if you use a valid token for a user that was deleted?
+// TODO: how long are tokens valid for?
 /** GET /:username/to - get messages to user
  *
  * => {messages: [{id,
