@@ -1,5 +1,5 @@
 import express from "express";
-import { ensureLoggedIn, ensureCorrectUser } from "../middleware/auth.js";
+import { ensureLoggedIn } from "../middleware/auth.js";
 import Message from "../models/message.js";
 import { UnauthorizedError } from "../expressError.js";
 import User from "../models/user.js";
@@ -21,8 +21,8 @@ const router = new express.Router();
 router.get("/:id",
   ensureLoggedIn,
   async function (req, res) {
-    const msgId = req.params.id;
-    const message = await Message.get(msgId);
+    const id = req.params.id;
+    const message = await Message.get(id);
     const user = res.locals.user.username;
 
     if (
@@ -36,7 +36,6 @@ router.get("/:id",
 
   });
 
-// FIXME: return json and res.locals.user.username
 /** POST / - post message.
  *
  * {to_username, body} =>
@@ -46,7 +45,7 @@ router.get("/:id",
 
 router.post("/",
   ensureLoggedIn,
-  async function () {
+  async function (req, res) {
     if (
       req.body.to_username === undefined ||
       req.body.body === undefined
@@ -54,19 +53,18 @@ router.post("/",
       throw new BadRequestError();
     }
 
-    const fromUsername = res.locals.user;
+    const fromUsername = res.locals.user.username;
     const toUsername = req.body.to_username;
     const body = req.body.body;
 
     if (User.get(toUsername)) {
-      const message = await Message.create(fromUsername, toUsername, body);
+      const message = await Message.create({ fromUsername, toUsername, body });
 
-      return { message };
+      return res.json({ message });
     }
 
   });
 
-// FIXME: return json and res.locals.user.username
 /** POST/:id/read - mark message as read:
  *
  *  => {message: {id, read_at}}
@@ -75,18 +73,18 @@ router.post("/",
  *
  **/
 router.post("/:id/read",
-  ensureCorrectUser,
-  async function () {
+  ensureLoggedIn,
+  async function (req, res) {
 
-    const id = req.query.params;
+    const id = req.params.id;
 
-    const user = res.locals.user;
+    const user = res.locals.user.username;
 
     let message = await Message.get(id);
 
-    if (message.toUsername === user.username) {
+    if (message.to_user.username === user) {
       message = await Message.markRead(id);
-      return { message };
+      return res.json({ message });
     }
 
     throw new UnauthorizedError();
