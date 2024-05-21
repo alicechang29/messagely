@@ -11,7 +11,8 @@ const router = new Router();
  *
  **/
 router.get("/", ensureLoggedIn, async function (req, res) {
-    return await res.json({ users: User.all() });
+    const users = await User.all();
+    return await res.json({ users });
 });
 
 /** GET /:username - get detail of users.
